@@ -1,0 +1,1 @@
+This Repository contains the assignments done during MERN Stack Cohort 2.0

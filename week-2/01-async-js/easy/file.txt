@@ -1,0 +1,3 @@
+Hi! This text file is created for applying async task of reading from a file.
+ This line is written via fileWrite!
+This line is written via fileWrite!

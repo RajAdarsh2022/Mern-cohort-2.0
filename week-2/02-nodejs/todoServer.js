@@ -43,7 +43,101 @@
   const bodyParser = require('body-parser');
   
   const app = express();
-  
   app.use(bodyParser.json());
+
+  /* 
+  todo = {
+    id : int
+    title : "string"
+    completed : true/false
+    description : "string"
+  }
+  */
+  let todoList = []
+  let nextId = 1  // For creating Id's for each todos
+
+
+  //Exposing desired API endpoints
+
+  // 1. Getting all todos
+  app.get("/todos", (req, res) => {
+    const allTodos = todoList.map(todo => ({
+      title: todo.title,
+      description: todo.description
+    }));
+    res.json(allTodos);
+  })
+
+  // 2. Getting a specific todo by their id
+  app.get("/todos/:id", (req, res) => {
+    const todoId = req.params.id;
+    const todo = todoList.find(todo => todo.id === parseInt(todoId));
+    if (todo) {
+      res.json({
+        id: todo.id, // Include id here
+        title: todo.title,
+        description: todo.description
+      });
+    } else {
+      res.status(404).send("Todo item not found");
+    }
+  })
+
+  // 3. Adding a new todo to the list
+  app.post("/todos", (req,res) => {
+    const todoTitle = req.body.title
+    const IsCompleted = req.body.completed 
+    const todoDescription = req.body.description
+    
+    const newTodo = {
+      id : nextId,
+      title : todoTitle,
+      completed : IsCompleted,
+      description : todoDescription,
+    }
+
+    //pushing it into the list and increasing the id
+    todoList.push(newTodo)
+    nextId += 1
+
+    res.status(201).json({id : nextId - 1})
+
+  })
+
+  // 4. Updates an existing todo item by Id
+  app.put("/todos/:id", (req,res) => {
+    const todoId = req.params.id
+    const todoTitle = req.body.title
+    const IsCompleted = req.body.completed 
+
+    todoList.forEach( e => {
+      if (e.id == todoId){
+        e.title = todoTitle
+        e.completed = IsCompleted
+        res.sendStatus(200)
+      }
+    })
+
+    res.status(404).send('todo id is not present')
+  })
+
+  // 5. Deleting a todo item by its Id
+  app.delete("/todos/:id", (req,res) => {
+    const todoId = req.params.id
+
+    for(let i = 0 ; i < todoList.length ; i++){
+      let e = todoList[i]
+      if (e.id == todoId){
+        todoList.splice(i , 1)
+        res.sendStatus(200)
+      }
+    }
+
+    res.sendStatus(404)
+  })
   
+  //Handling undesirable route
+  app.use((req,res) => {
+    res.status(404).send('Route not found')
+  })
   module.exports = app;

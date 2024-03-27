@@ -17,6 +17,33 @@ setInterval(() => {
   numberOfRequestsForUser = {};
 }, 1000)
 
+function rateLimiter(req, res, next){
+
+  const userId = req.headers["user-id"]
+  /* 2 cases arise here
+      1) The user had previously hit the server.
+      2) The user is new.
+  */
+  if(numberOfRequestsForUser[userId]){
+      let numRequests = numberOfRequestsForUser.userId
+      if(numRequests < 5){
+        numberOfRequestsForUser.userId += 1
+        next()
+      }
+      else{
+        res.status(404).send("Rate limit reached!")
+      }
+  }
+  else{
+    numberOfRequestsForUser[userId] = 1
+    next()
+  }
+
+
+}
+
+app.use(rateLimiter)
+
 app.get('/user', function(req, res) {
   res.status(200).json({ name: 'john' });
 });

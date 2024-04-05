@@ -7,19 +7,68 @@
     let todoState = [];
     let oldTodoState = [];
 
-    function addTodoToDom() {
-      
+    /*function to check whether an element 'e' exists in the array or not ? 
+      if exists => returns the index
+      if doesn't exists => returns -1
+    */
+    function isExisits(arr, eId){
+      return arr.findIndex(element => element["id"] === eId)
+    }
+  
+    // function for marking the todo as completed when user clicks on the button
+    function markAsRead(id){
+
+      completedTask = document.getElementById(`${id}`)
+      completedTask.children[2].innerHTML = "Done!"
+
     }
 
-    function removeTodoFromDom(todo) {
+    //function for creating the todo-child
+    function createChild(title, description, id){
+      const todoTask = document.createElement("div")
+      todoTask.setAttribute("id" , id)
+
+      const todoTaskTitle = document.createElement("div")
+      todoTaskTitle.innerHTML = title
+
+      const todoTaskDescription = document.createElement("div")
+      todoTaskDescription.innerHTML = description
       
+      const todoTaskButton = document.createElement("button")
+      todoTaskButton.innerHTML = "Mark as done!"
+      todoTaskButton.setAttribute("onClick" , `markAsRead(${id})`)
+
+      todoTask.appendChild(todoTaskTitle)
+      todoTask.appendChild(todoTaskDescription)
+      todoTask.appendChild(todoTaskButton)
+      return todoTask
+    }
+
+    function addTodoToDom(addedList) {
+      const parentDiv = document.getElementById("todos")
+      addedList.forEach(element => {
+        parentDiv.appendChild(createChild(element.title , element.description, element.id))
+      })
+    }
+
+    function removeTodoFromDom(deletedList) {
+      deletedList.forEach(element => {
+        divToBeDeleted = document.getElementById(element.id)
+        divToBeDeleted.remove()
+      })
     }
 
     function updateTodoInDom(oldTodo, newTodo) {
-        
+        const oldElement = document.getElementById(oldTodo.id)
+
+        oldElement.children[0].innerHTML = newTodo.title
+        oldElement.children[1].innerHTML = newTodo.description
+
     }
 
     function updateState(newTodos) {
+      console.log(newTodos)
+      console.log(oldTodoState)
       // calculate the diff b/w newTodos and oldTodos.
       // More specifically, find out what todos are - 
       // 1. added
@@ -31,7 +80,46 @@
       // calculate these 3 arrays
       // call addTodo, removeTodo, updateTodo functions on each of the
       // elements
-      oldTodoState = newTodos;
+
+      /* Logic starts from here */
+
+      //Comparing new state with the old for addition and updation
+      newTodos.forEach(element => {
+        //checking whether this element is present in oldTodos or not
+        const index = isExisits(oldTodoState , element["id"])
+        console.log(index)
+        // Case 1 : if not present then it is just added to the state
+        // Case 2 : if present, then it might have been updated 
+        if (index === -1){
+          console.log(element)
+          added.push(element)
+        }else{
+          let e2 = oldTodoState[index]
+          if(element["title"] != e2["title"] || element["description"] != e2["description"]){
+            updated.push(element)
+            updateTodoInDom(e2 , element)
+          }
+        }
+        
+      })
+
+      //Comparing old state with the new to check for deletions
+      oldTodoState.forEach(element => {
+        const index = isExisits(newTodos , element["id"])
+
+        if (index === -1){
+          deleted.push(element)
+        }
+      })
+
+      //After figuring out added and deleted elements, calling the function for DOM changes
+      addTodoToDom(added)
+      removeTodoFromDom(deleted)
+
+      // oldTodoState = newTodos;
+      oldTodoState = Object.assign([] , newTodos)
+      console.log(oldTodoState)
+      console.log(newTodos)
     }
 
     function addTodo() {
